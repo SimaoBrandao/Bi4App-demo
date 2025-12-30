@@ -2,181 +2,78 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Demonstração da Bi4App — extração dos dados do QR Code do Bilhete de Identidade</title>
+  <title>Demonstração da Bi4App — extração dos dados do QR Code do Bilhete de Identidade de Angola e preenchimento automático em aplicação web</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="estilo.css">
-
-  <style>
-    /* Máscara somente na apresentação */
-
-    .campo-mascarado {
-      color: transparent;
-      position: relative;
-    }
-
-    .campo-mascarado::after {
-      content: attr(data-mask);
-      color: #000;
-      position: absolute;
-      left: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    /* quando o usuário clica → mostrar valor real */
-    .campo-mascarado:focus {
-      color: black;
-    }
-
-    .campo-mascarado:focus::after {
-      content: "";
-    }
-  </style>
-
 </head>
 <body>
 
 <main>
-  <h1>Demonstração da Bi4App — leitura do QR Code e preenchimento automático</h1>
-
-  <button type="button" id="botaoIniciarLeitura">Iniciar Leitura do QR Code</button>
+  <h1>Demonstração da Bi4App — extração dos dados do QR Code do Bilhete de Identidade de Angola e preenchimento automático em aplicação web</h1>
+  <p>
+    Aponte a câmera do dispositivo para o <strong>QR Code</strong> localizado no verso do Bilhete de Identidade e clique no botão <strong>“Iniciar Leitura do QR Code”</strong>. O sistema irá preencher automaticamente os campos abaixo.
+  </p> 
+  <p>Caso a câmara não inicie na primeira tentativa, basta reabrir a aplicação da câmara e tentar novamente.</p> 
+  
+  <!-- Botão que inicia a leitura do QR Code -->
+  <button type="button" id="botaoIniciarLeitura" aria-label="Iniciar Leitura do QR Code">Iniciar Leitura do QR Code</button>
   <button type="button" id="botaoPararLeitura" style="display:none;">Parar Leitura</button>
-
+  <input type="text" id="inputLeitorExterno" style="opacity:0; position:absolute; left:-9999px;" autocomplete="off" />
+  
+  <!-- Área de vídeo onde será exibida a imagem da câmera
+       A linha abaixo exibe status da leitura, pode ser descomentada se desejado 
+       Aqui mostra o status da leitura -->
   <div id="status" style="margin-top: 10px; font-weight: bold;"></div>
   <video id="video" width="300" height="200" autoplay muted playsinline></video>
 
+  <!-- Formulário com os campos que serão preenchidos automaticamente com os dados do QR Code -->
   <form id="formulario" autocomplete="off">
-
-    <input type="text" id="nomeCompleto">
-    <input type="text" id="numeroDoBI">
-    <input type="text" id="provinciaNascimento">
-    <input type="text" id="dataNascimento">
-    <input type="text" id="sexo">
-    <input type="text" id="estadoCivil">
-    <input type="text" id="dataEmissao">
-    <input type="text" id="dataValidade">
-    <input type="text" id="provinciaEmissoraDoBi">
-
-    <input type="number" id="idadeComBaseNoAnoDeNascimento">
-    <input type="number" id="idadeComBaseNoMesEAnoDeNascimento">
-
+     <!-- Cada campo usa o atributo data-json para mapear a chave do JSON ao campo correspondente -->
+    <div class="form-group"><label for="nomeCompleto">Nome Completo</label><input type="text" id="nomeCompleto" name="nomeCompleto" data-json="nomeCompleto" placeholder="Nome Completo"></div>
+    <div class="form-group"><label for="numeroDoBI">Nº do BI</label><input type="text" id="numeroDoBI" name="numeroBI" data-json="numeroDocumento" placeholder="Nº do BI"></div>
+    <div class="form-group"><label for="provinciaNascimento">Província</label><input type="text" id="provinciaNascimento" name="provinciaNascimento" data-json="provinciaNascimento" placeholder="Província"></div>
+    <div class="form-group"><label for="dataNascimento">Data de Nascimento</label><input type="text" id="dataNascimento" name="dataNascimento" data-json="dataNascimento" placeholder="Data de Nascimento"></div>
+    <div class="form-group"><label for="sexo">Sexo</label><input type="text" id="sexo" name="sexo" data-json="sexo" placeholder="Sexo"></div>
+    <div class="form-group"><label for="estadoCivil">Estado Civil</label><input type="text" id="estadoCivil" name="estadoCivil" data-json="estadoCivil" placeholder="Estado Civil"></div>
+    <div class="form-group"><label for="dataEmissao">Data de Emissão</label><input type="text" id="dataEmissao" name="dataEmissao" data-json="dataEmissao" placeholder="Data de Emissão"></div>
+    <div class="form-group"><label for="dataValidade">Data de Validade</label><input type="text" id="dataValidade" name="dataValidade" data-json="dataValidade" placeholder="Data de Validade"></div>
+    <div class="form-group"><label for="provinciaEmissoraDoBi">Província Emissora do BI</label><input type="text" id="provinciaEmissoraDoBi" name="provinciaEmissora" data-json="provinciaEmissora" placeholder="Província emissora"></div>
+    <div class="form-group"><label for="idadeComBaseNoAnoDeNascimento">Idade (Ano)</label><input type="number" id="idadeComBaseNoAnoDeNascimento" name="idadeComBaseNoAnoDeNascimento" data-json="idadeComBaseNoAno" placeholder="Idade"></div>
+    <div class="form-group"><label for="idadeComBaseNoMesEAnoDeNascimento">Idade (Mês/Ano)</label><input type="number" id="idadeComBaseNoMesEAnoDeNascimento" name="idadeComBaseNoMesEAnoDeNascimento" data-json="idadeExata" placeholder="Idade"></div>
+    <div class="form-group"><label for="primeiroNome">Primeiro Nome</label><input type="text" id="primeiroNome" name="primeiroNome" data-json="primeiroNome" placeholder="Primeiro Nome"></div>
+    <div class="form-group"><label for="ultimoNome">Último Nome</label><input type="text" id="ultimoNome" name="ultimoNome" data-json="ultimoNome" placeholder="Último Nome"></div>
+    <div class="form-group"><label for="faixaEtaria">Faixa Etária</label><input type="text" id="faixaEtaria" name="faixaEtaria" data-json="faixaEtaria" placeholder="Faixa Etária"></div>
+    <div class="form-group"><label for="estadoDoBilhete">Estado Do Bilhete</label><input type="text" id="estadoDoBilhete" name="estadoDoBilhete" data-json="estadoDocumento" placeholder="Estado do Bilhete"></div>
+    <div class="form-group"><label for="tempoValidadeBilhete">Tempo de Validade do Bilhete</label><input type="text" id="tempoValidadeBilhete" name="tempoValidadeBilhete" data-json="tempoValidadeDocumento" placeholder="Tempo de Validade"></div>
   </form>
 </main>
 
 <script type="module">
-import { LeitorQRCode } from './LeitorQRCode.js';
+    import { LeitorQRCode } from './LeitorQRCode.js';
 
-const leitor = new LeitorQRCode({
-  botaoIniciar: document.getElementById('botaoIniciarLeitura'),
-  botaoResetar: document.getElementById('botaoPararLeitura'),
-  video: document.getElementById('video'),
-  status: document.getElementById('status'),
-  container: document.getElementById('formulario'),
+    const leitor = new LeitorQRCode({
+    botaoIniciar: document.getElementById('botaoIniciarLeitura'),
+    botaoResetar: document.getElementById('botaoPararLeitura'),
+    video: document.getElementById('video'),
+    status: document.getElementById('status'),
+    container: document.getElementById('formulario'),
 });
 
-await leitor.inicializar();
+    leitor.on('status', msg => console.log('Status:', msg));
+    leitor.on('codigoDetectado', codigo => console.log('QR Code:', codigo));
+    leitor.on('processado', dados => console.log('Dados extraídos:', dados));
+    //leitor.on('error', erro => console.error('Erro:', erro));
 
-leitor.on("processado", () => {
-  requestAnimationFrame(mascararSomenteNaApresentacao);
-});
+    (async () => {
+    await leitor.inicializar();
+  })();
+  </script>
 
-document
-  .getElementById("formulario")
-  .addEventListener("change", mascararSomenteNaApresentacao);
-
-/* ================================
-   FUNÇÕES DE MÁSCARA (APRESENTAÇÃO)
-   ================================ */
-
-function maskDataNascimento(v) {
-  const p = v.split("/");
-  if (p.length !== 3) return v;
-  return `${p[0]}/**/****`;
-}
-
-function maskUltimoDigito(v) {
-  const s = v.toString();
-  if (s.length <= 1) return "X";
-  return s.slice(0, -1) + "X";
-}
-
-function maskNumeroBI(bi) {
-  let zeros = 0, mascarando = false, r = "";
-
-  for (let c of bi) {
-
-    if (c === "0") zeros++;
-    if (zeros >= 3 && !mascarando) mascarando = true;
-
-    if (mascarando && c === "L") {
-      mascarando = false;
-      r += "L";
-      continue;
-    }
-
-    r += mascarando ? "*" : c;
-  }
-
-  return r;
-}
-
-/* ================================
-   APLICAÇÃO SÓ NA INTERFACE
-   ================================ */
-
-function aplicarMascaraApresentacao(input, getMask) {
-
-  if (!input || !input.value) return;
-
-  input.classList.add("campo-mascarado");
-
-  // guarda o valor verdadeiro apenas uma vez
-  if (!input.dataset.realValue)
-    input.dataset.realValue = input.value;
-
-  // cria a máscara visual
-  input.dataset.mask = getMask(input.dataset.realValue);
-
-  // foco → mostra valor real
-  input.addEventListener("focus", () => {
-    input.value = input.dataset.realValue;
-  });
-
-  // blur → reaplica máscara
-  input.addEventListener("blur", () => {
-    input.value = input.dataset.realValue;
-    input.dataset.mask = getMask(input.dataset.realValue);
-  });
-}
-
-function mascararSomenteNaApresentacao() {
-
-  aplicarMascaraApresentacao(
-    document.getElementById("dataNascimento"),
-    maskDataNascimento
-  );
-
-  aplicarMascaraApresentacao(
-    document.getElementById("idadeComBaseNoAnoDeNascimento"),
-    maskUltimoDigito
-  );
-
-  aplicarMascaraApresentacao(
-    document.getElementById("idadeComBaseNoMesEAnoDeNascimento"),
-    maskUltimoDigito
-  );
-
-  aplicarMascaraApresentacao(
-    document.getElementById("numeroDoBI"),
-    maskNumeroBI
-  );
-}
-</script>
-
+<!-- Rodapé da página com informações de contacto -->
 <footer>
-  <p>Desenvolvido por <strong>Simão Brandão</strong></p>
+  <p>Desenvolvido por <strong>Simão Brandão</strong><br>
+    Telemóvel: <a href="tel:+244948493828">+244 948 493 828</a> |
+    E-mail: <a href="mailto:sibrandao2008@gmail.com">sibrandao2008@gmail.com</a></p>
 </footer>
 
 </body>
